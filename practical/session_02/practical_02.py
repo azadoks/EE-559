@@ -1,9 +1,8 @@
 import sys
-sys.path.append('../../')
+sys.path.append('../')
 
 import torch
-from torch import Tensor
-import dlc_practical_prologue as prologue
+import prologue_cli as prologue
 
 train_input, train_target, test_input, test_target = prologue.load_data()
 
