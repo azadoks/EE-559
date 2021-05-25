@@ -32,27 +32,29 @@ class ConvNet(nn.Module):
                                padding=0)
         self.conv2 = nn.Conv2d(in_channels=32,
                                out_channels=64,
-                               kernel_size=3,
+                               kernel_size=2,
                                stride=1,
                                padding=0)
-        self.drop1 = nn.Dropout2d(p=0.3)
-        self.drop2 = nn.Dropout2d(p=0.3)
-        self.pool = nn.AvgPool2d(kernel_size=1, stride=2, padding=0)
+        self.conv3 = nn.Conv2d(in_channels=64,
+                               out_channels=128,
+                               kernel_size=2,
+                               stride=1,
+                               padding=0)
+        self.pool = nn.AvgPool2d(kernel_size=2, stride=2, padding=0)
 
     # pylint: disable=arguments-differ
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        # Nx1x14x14
-        x = self.conv1(x)  # Nx32x12x12
-        x = self.act(x)  # Nx32x12x12
-        x = self.pool(x)  # Nx32x6x6
 
-        x = self.drop1(x)  # Nx32x6x6
+        x = self.conv1(x)
+        x = self.act(x)
+        x = self.pool(x)
 
-        x = self.conv2(x)  # Nx64x4x4
-        x = self.act(x)  # Nx64x4x4
-        x = self.pool(x)  # Nx64x2x2
+        x = self.conv2(x)
+        x = self.act(x)
+        x = self.pool(x)
 
-        x = self.drop2(x)  # Nx64x2x2
+        x = self.conv3(x)
+        x = self.act(x)
 
         return x
 
@@ -70,24 +72,34 @@ class FullyConnectedNet(nn.Module):
     def __init__(self):
         super().__init__()
         self.act = nn.Tanh()
-        self.lin1 = nn.Linear(in_features=256, out_features=128)
-        self.lin2 = nn.Linear(in_features=128, out_features=10)
+        self.bn1 = nn.BatchNorm1d(64)
+        self.bn2 = nn.BatchNorm1d(32)
+        self.do = nn.Dropout(0.25)
+        self.lin1 = nn.Linear(in_features=128, out_features=64)
+        self.lin2 = nn.Linear(in_features=64, out_features=32)
+        self.lin3 = nn.Linear(in_features=32, out_features=10)
 
     # pylint: disable=arguments-differ
     def forward(self, x):
-        # Nx256
-        x = self.lin1(x)  # Nx128
-        x = self.act(x)  # Nx128
 
-        x = self.lin2(x)  # Nx10
+        x = self.lin1(x)
+        x = self.bn1(x)
+        x = self.act(x)
+        x = self.do(x)
+
+        x = self.lin2(x)
+        x = self.bn2(x)
+        x = self.act(x)
+        x = self.do(x)
+
+        x = self.lin3(x)
 
         return x
 
 
 class LeNet(nn.Module):
     """
-    A LeNet-style convolutional neural network for character recognition for
-    MNIST.
+    A LeNet-style convolutional neural network for MNIST character recognition.
 
     1@14x14 -> ConvNet
     -> 64@2x2 -> Reshape
@@ -102,10 +114,9 @@ class LeNet(nn.Module):
 
     # pylint: disable=arguments-differ
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        # Nx1x14x14
-        x = self.conv(x)  # Nx64x2x2
-        x = x.view(x.size(0), -1)  # Nx256
-        x = self.fc(x)  # Nx10
+        x = self.conv(x)
+        x = x.view(x.size(0), -1)
+        x = self.fc(x)
 
         return x
 
@@ -126,32 +137,42 @@ class Proj1Net(nn.Module):
         super().__init__()
         self.share_weight = share_weight
         self.aux_loss = aux_loss
+
+        self.act = nn.Tanh()
+        self.bn = nn.BatchNorm1d(10)
+        self.do = nn.Dropout(0.25)
+        self.lin1 = nn.Linear(20, 10)
+        self.lin2 = nn.Linear(10, 2)
+
         self.lenet1 = LeNet()
         if self.share_weight:
             self.lenet2 = self.lenet1
         else:
             self.lenet2 = LeNet()
-        self.act = nn.Tanh()
-        self.lin = nn.Linear(20, 2)  # Makes value(img1) <= value(img2) prediciton
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        # Nx2x14x14
-        x1 = x[:, 0]  # Nx14x14
-        x1 = x1.unsqueeze(
-            1)  # Nx1x14x14 (unsqueeze adds back the lost dimension)
+
+        x1 = x[:, 0]
+        x1 = x1.unsqueeze(1)  # unsqueeze adds back the lost dimension
         x1 = self.lenet1(x1)
 
-        x2 = x[:, 1]  # Nx14x14
-        x2 = x2.unsqueeze(1)  # Nx1x14x14
+        x2 = x[:, 1]
+        x2 = x2.unsqueeze(1)
         x2 = self.lenet2(x2)
 
-        x = [x1, x2]  # [Nx10, Nx10]
-        x = torch.cat(x, dim=1)  # Nx20  pylint: disable=no-member
-        x = self.act(x)  # Nx20
-        x = self.lin(x)  # Nx2
+        x = [x1, x2]
+        x = torch.cat(x, dim=1)  # pylint: disable=no-member
+        x = self.act(x)
+
+        x = self.lin1(x)
+        x = self.bn(x)
+        x = self.act(x)
+        x = self.do(x)
+
+        x = self.lin2(x)
 
         if self.aux_loss:
-            # We need to keep the LeNet predictions to calculate the auxiliary loss
-            return x, x1, x2
+            # We need to keep the internal LeNet predictions to calculate the auxiliary loss
+            return x, (x1, x2)
         else:
-            return x, None, None
+            return x, ()

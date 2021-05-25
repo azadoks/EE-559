@@ -83,7 +83,7 @@ def report_data(trn_inp: torch.Tensor, trn_out: torch.Tensor,
     block += ''.join(['-'] * 94) + '\n'
     for data_desc in data:
         block += row_format.format(**data_desc)
-    return _write_block(block, 'DATA')
+    print(_write_block(block, 'DATA'))
 
 
 def report_model(model):
@@ -93,14 +93,10 @@ def report_model(model):
 
 
 # pylint: disable=too-many-arguments
-def report_train(title: str, model, n_rounds: int, n_epochs: int,
+def report_train(model, n_rounds: int, n_epochs: int,
                  trn_time: torch.Tensor, trn_err: torch.Tensor,
-                 tst_err: torch.Tensor, trn_loss_hist: list,
-                 tst_loss_hist: list, trn_acc_hist: list, tst_acc_hist: list):
+                 tst_err: torch.Tensor, trn_loss_hist: list, tst_acc_hist: list):
     
-    # block = f'Trained {model} in {n_rounds} rounds for {n_epochs} epochs:\n'
-    # if SUMMARY_AVAILABLE:
-    #     block += f'{torchsummary.summary(model, (2, 14, 14))}'
     block  = ''.join(['-'] * 42) + '\n'
     block += f'Quantity          Value\n'
     block += ''.join(['='] * 42) + '\n'
@@ -112,26 +108,5 @@ def report_train(title: str, model, n_rounds: int, n_epochs: int,
     block += f'Test error:       {tst_err.mean():8.4f} +- {tst_err.std():8.4f} [%]\n'
     block += f'Time / round:     {trn_time.mean():8.4f} +- {trn_time.std():8.4f} [s]\n'
     block += f'Total time:       {trn_time.sum():8.4f} [s]\n'
-    # if PLOTTING_AVAILABLE:
-    #     n_row_col = ceil(sqrt(n_rounds))
-    #     fig, ax = plt.subplots(n_row_col,
-    #                            n_row_col,
-    #                            dpi=300,
-    #                            figsize=(6 * n_row_col, 4 * n_row_col))
-    #     ax = ax.flatten()
-    #     for r in range(n_rounds):
-    #         ax[r].semilogy(trn_loss[r].detach().numpy(),
-    #                        label='Train loss',
-    #                        c='tab:blue')
-    #         ax2r = ax[r].twinx()
-    #         ax2r.plot(tst_acc[r].detach().numpy(),
-    #                   label='Test accuracy',
-    #                   c='tab:red')
-    #         ax[r].set_xlabel('Epoch')
-    #         ax[r].set_ylabel('Loss')
-    #         ax2r.set_ylabel('Accuracy')
-    #     fig.suptitle(title)
-    #     fig.tight_layout()
-    #     plt.savefig(f'{title}.pdf')
-    #     print(f'Saved training curve plots to {title}.pdf')
-    return _write_block(block, title='TRAIN')
+
+    print(_write_block(block, title='TRAIN'))
