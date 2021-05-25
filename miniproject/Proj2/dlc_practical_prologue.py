@@ -5,6 +5,8 @@ from torchvision import datasets
 import argparse
 import os
 
+import urllib
+
 ######################################################################
 
 parser = argparse.ArgumentParser(description='DLC prologue file for practical sessions.')
@@ -70,6 +72,26 @@ def load_data(cifar = None, one_hot_labels = False, normalize = False, flatten =
 
     else:
         print('* Using MNIST')
+
+        ######################################################################
+        # import torchvision
+
+        # raw_folder = data_dir + '/mnist/raw/'
+        # resources = [
+            # ("https://fleuret.org/dlc/data/train-images-idx3-ubyte.gz", "f68b3c2dcbeaaa9fbdd348bbdeb94873"),
+            # ("https://fleuret.org/dlc/data/train-labels-idx1-ubyte.gz", "d53e105ee54ea40749a09fcbcd1e9432"),
+            # ("https://fleuret.org/dlc/data/t10k-images-idx3-ubyte.gz", "9fb629c4189551a2d022fa330f9573f3"),
+            # ("https://fleuret.org/dlc/data/t10k-labels-idx1-ubyte.gz", "ec29112dd5afa0611ce80d1b7f02629c")
+        # ]
+
+        # os.makedirs(raw_folder, exist_ok=True)
+
+        # # download files
+        # for url, md5 in resources:
+            # filename = url.rpartition('/')[2]
+            # torchvision.datasets.utils.download_and_extract_archive(url, download_root=raw_folder, filename=filename, md5=md5)
+        ######################################################################
+
         mnist_train_set = datasets.MNIST(data_dir + '/mnist/', train = True, download = True)
         mnist_test_set = datasets.MNIST(data_dir + '/mnist/', train = False, download = True)
 
