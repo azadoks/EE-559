@@ -5,6 +5,7 @@
 __author__ = "Austin Zadoks"
 
 import math
+import time
 
 from torch import manual_seed, set_grad_enabled
 
@@ -31,13 +32,16 @@ def train_selected_model(
     optimizer = framework.SGD(model, lr=learning_rate, momentum=momentum)
     criterion = framework.MSELoss(model)
 
+    t0 = time.perf_counter()
     history = train.train_model(model, optimizer, criterion, train_data, test_data, n_epochs,
                                 batch_size)
+    t1 = time.perf_counter()
 
-    print(f'Final train loss:       {train.compute_loss(model, criterion, train_data, batch_size):8.4e}')
-    print(f'Final train accuracy:     {train.compute_accuracy(model, train_data, batch_size):8.2f}')
-    print(f'Final test loss:        {train.compute_loss(model, criterion, test_data, batch_size):8.4e}')
-    print(f'Final test accuracy:      {train.compute_accuracy(model, test_data, batch_size):8.2f}')
+    print(f'Final train loss:       {train.compute_loss(model, criterion, train_data, batch_size):8.4e} [ ]')
+    print(f'Final train accuracy:     {train.compute_accuracy(model, train_data, batch_size)*100:8.2f} [%]')
+    print(f'Final test loss:        {train.compute_loss(model, criterion, test_data, batch_size):8.4e} [ ]')
+    print(f'Final test accuracy:      {train.compute_accuracy(model, test_data, batch_size)*100:8.2f} [%]')
+    print(f'Time:                     {t1 - t0:8.2f} [s]')
 
     if plot_history:
         plot.plot_history(history, plot_history)
@@ -64,6 +68,8 @@ def main(plot_history=False, plot_points=False):
     print('ReLU')
     print(''.join(['=']*100))
     train_selected_model(**relu_params)
+
+    print()
 
     print('Tanh')
     print(''.join(['=']*100))
