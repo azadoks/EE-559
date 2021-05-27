@@ -7,9 +7,13 @@ __author__ = "Austin Zadoks"
 import typing as ty
 
 import matplotlib.pyplot as plt
+import torch
 
 
-def plot_histories(histories: ty.List[ty.Dict], nrow: int, ncol: int, filename: str='history.png'):
+def plot_avg_histories(
+    all_histories: ty.Dict[ty.Tuple[bool], ty.List[ty.Dict]],
+    filename: str='avg_history.png'
+):
     """
     Plot training histories for a set of rounds.
     
@@ -18,26 +22,64 @@ def plot_histories(histories: ty.List[ty.Dict], nrow: int, ncol: int, filename: 
     :param ncol: number of subplot columns
     :param filename: filename for plot saving
     """
-    fig, axes = plt.subplots(nrow, ncol, dpi=300, figsize=(8*ncol, 5*nrow))
-    axes= axes.flatten()
+    def compute_history_stats(histories):
+        history_statistics = {}
+        for history in histories:
+            for key, value in history.items():
+                if key not in history_statistics:
+                    history_statistics[key] = value
+                else:
+                    history_statistics[key] = torch.vstack(  # pylint: disable=no-member
+                        [history_statistics[key], value])
+        return {
+            key: (value.mean(0), value.std(0))
+            for key, value in history_statistics.items()
+        }
 
-    for r, (history, ax) in enumerate(zip(histories, axes[:len(histories)])):
-        ax.semilogy(history['train_loss'], linewidth=1, label='Training loss', c='tab:blue')
-        # ax.semilogy(history['test_loss'], linewidth=1, label='Test loss', c='tab:green')
+    history_statistics = {
+        key: compute_history_stats(value)
+        for key, value in all_histories.items()
+    }
+
+    fig, axes = plt.subplots(2, 2, dpi=300, figsize=(10, 6))
+    axes = axes.flatten()
+
+    for i, (history_data, ax) in enumerate(zip(history_statistics.items(), axes)):
+        (share_weight, aux_loss), history = history_data
+        x = torch.arange(history['train_loss'][0].size(0))  # pylint: disable=no-member
+        
+        ax.semilogy(x, 
+            history['train_loss'][0],
+            c='tab:blue',
+            label='Training loss' if i == 0 else None)
+        ax.fill_between(x,
+            history['train_loss'][0] - history['train_loss'][1],
+            history['train_loss'][0] + history['train_loss'][1],
+            alpha=0.2, color='tab:blue')
         ax.set_xlabel('Epoch')
         ax.set_ylabel('Loss')
-        ax.legend(loc='upper left')
 
         twin_ax = ax.twinx()
-        twin_ax.plot(1 - history['train_err'], linewidth=1, label='Training accuracy', c='tab:orange')
-        twin_ax.plot(1 - history['test_err'], linewidth=1, label='Test accuracy', c='tab:red')
+        twin_ax.plot(x,
+            1 - history['train_err'][0],
+            c='tab:orange',
+            label='Training acc.' if i == 0 else None)
+        twin_ax.fill_between(x,
+            (1 - history['train_err'][0]) - history['train_err'][0],
+            (1 - history['train_err'][0]) + history['train_err'][0],
+            alpha=0.2, color='tab:orange')
+        twin_ax.plot(x,
+            1 - history['test_err'][0],
+            c='tab:red',
+            label='Test acc.' if i == 0 else None)
+        twin_ax.fill_between(x,
+            (1 - history['test_err'][0]) - history['test_err'][0],
+            (1 - history['test_err'][0]) + history['test_err'][0],
+            alpha=0.2, color='tab:red')
         twin_ax.set_ylabel('Accuracy')
-        twin_ax.legend(loc='upper right')
 
-        ax.set_title(f'Round {r+1}')
-    
-    for ax in axes[len(histories):]:
-        ax.axis('off')
+        ax.set_title(f'Wt. share={share_weight}, Aux. loss={aux_loss}')
 
+    fig.legend(loc='lower center', ncol=3)
     fig.tight_layout()
     fig.savefig(filename)

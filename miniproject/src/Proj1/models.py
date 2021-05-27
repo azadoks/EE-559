@@ -42,9 +42,9 @@ class LeNet(nn.Module):
         return output
 
 
-class Proj1Net(nn.Module):
+class TwinNet(nn.Module):
     """
-    Use LeNet-style convolutional neural networks to learn if the digit in the first MNIST image in
+    A twin neural network used to predict if the digit in the first MNIST image in
     a pair is lesser or equal to the digit in the second image.
 
     :param share_weight: Share LeNet weights between first and second image networks
@@ -82,8 +82,8 @@ class Proj1Net(nn.Module):
         # combine the subnet outputs and push through prediction linear layers
         output = [output1, output2]
         output = torch.cat(output, dim=1)  # pylint: disable=no-member
-        output = self.act(output)
 
+        output = self.act(output)
         output = self.lin1(output)  # fully-connected hidden
         output = self.bn1(output)  # batch normalization
         output = self.act(output)

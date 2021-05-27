@@ -12,11 +12,11 @@ from torch.utils import data
 import models
 
 
-def compute_loss(model: models.Proj1Net, criterion, loader: data.DataLoader) -> float:
+def compute_loss(model: models.TwinNet, criterion, loader: data.DataLoader) -> float:
     """
     Compute average batch loss.
     
-    :param model: Proj1Net model
+    :param model: TwinNet model
     :param criterion: loss criterion
     :param loader: data loader
     :returns: average batch loss
@@ -29,11 +29,11 @@ def compute_loss(model: models.Proj1Net, criterion, loader: data.DataLoader) -> 
     return loss_acc * loader.batch_size / len(loader.dataset)
 
 
-def compute_error(model: models.Proj1Net, loader: data.DataLoader) -> float:
+def compute_error(model: models.TwinNet, loader: data.DataLoader) -> float:
     """
     Compute error rate over batches using winner-take-all method.
     
-    :param model: Proj1Net model
+    :param model: TwinNet model
     :param loader: data loader
     :returns: winner-take-all error rate [0,1]
     """
@@ -44,7 +44,7 @@ def compute_error(model: models.Proj1Net, loader: data.DataLoader) -> float:
     return n_errors_acc / len(loader.dataset)
 
 
-def train_proj1net(model: models.Proj1Net,
+def train_twin_net(model: models.TwinNet,
                    optimizer,
                    criterion,
                    train_loader: data.DataLoader,
@@ -55,7 +55,7 @@ def train_proj1net(model: models.Proj1Net,
     Train a LeNet-style convolutional neural network to learn if the digit in the first MNIST
     image in a pair is lesser or equal to the digit in the second image.
 
-    :param model: Proj1Net model
+    :param model: TwinNet model
     :param optimizer: optimizer
     :param criterion: loss criterion
     :param train_loader: training data loader

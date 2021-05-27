@@ -27,7 +27,7 @@ def train_round(criterion,
                 n_epochs: int,
                 full_history: bool) -> ty.Tuple[ty.Dict]:
     """
-    Perform a round of training on a Proj1Net model.
+    Perform a round of training on a TwinNet model.
 
     :param criterion: loss criterion
     :param optimizer: optimizer
@@ -41,12 +41,12 @@ def train_round(criterion,
     :returns: training history dictionary and final loss, error, and time dictionary
     """
     train_loader, test_loader = data.load_data(n_pairs, batch_size)
-    model = models.Proj1Net(share_weight, aux_loss)
+    model = models.TwinNet(share_weight, aux_loss)
     criterion = criterion()
     optimizer = optimizer(model.parameters(), **optimizer_params)
 
     t0 = time.perf_counter()
-    history = train.train_proj1net(model, optimizer, criterion, train_loader, test_loader, n_epochs,
+    history = train.train_twin_net(model, optimizer, criterion, train_loader, test_loader, n_epochs,
                                    full_history=full_history)
     t1 = time.perf_counter()
 
@@ -69,7 +69,7 @@ def train_n_rounds(n_rounds: int,
                    full_history: bool=False,
                    **kwargs) -> ty.List[ty.Dict]:
     """
-    Train a Proj1Net model for many rounds with different random seeds. Prints round results and
+    Train a TwinNet model for many rounds with different random seeds. Prints round results and
     mean +- standard devation over all rounds.
 
     :param n_rounds: number of rounds
@@ -103,27 +103,18 @@ def train_n_rounds(n_rounds: int,
     log.print_round_footer()
 
     log.print_round_statistics(results)
-    if do_plot:
-        plot.plot_histories(
-            histories,
-            nrow=4,
-            ncol=4,
-            filename=(
-                f'plots/share_weight={kwargs["share_weight"]}__aux_loss={kwargs["aux_loss"]}.png'
-            )
-        )
 
-    return results
+    return histories, results
 
 
 def main():
     """
-    Train a Proj1Net model for combinations of weight sharing and auxiliary loss for multiple
+    Train a TwinNet model for combinations of weight sharing and auxiliary loss for multiple
     rounds.
     """
     seed = 2021
-    n_rounds = 16
-    plot = False
+    n_rounds = 32
+    do_plot = False
     full_history = False
 
     training_parameters = {
@@ -135,6 +126,8 @@ def main():
         'n_epochs': 25
     }
 
+    all_histories = {}
+    all_results = {}
     for share_weight, aux_loss in [(False, False), (True, False), (False, True), (True, True)]:
         print(f'Weight sharing {share_weight}, Auxiliary loss {aux_loss}')
         print(''.join(['=']*100))
@@ -142,10 +135,15 @@ def main():
         
         training_parameters['share_weight'] = share_weight
         training_parameters['aux_loss'] = aux_loss
-        train_n_rounds(n_rounds, base_seed=seed, do_plot=plot, full_history=full_history,
-                       **training_parameters)
+        histories, results = train_n_rounds(n_rounds, base_seed=seed, do_plot=do_plot,
+                                            full_history=full_history, **training_parameters)
+        all_histories[(share_weight, aux_loss)] = histories
+        all_results[(share_weight, aux_loss)] = results
         
         print()
+
+    if do_plot:
+        plot.plot_avg_histories(all_histories, filename='plots/avg_histories.pdf')
 
 
 if __name__ == '__main__':

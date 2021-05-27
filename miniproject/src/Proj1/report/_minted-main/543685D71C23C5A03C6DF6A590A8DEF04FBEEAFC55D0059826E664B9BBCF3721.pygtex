@@ -1,0 +1,26 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{k+kn}{import} \PYG{n+nn}{torch.nn} \PYG{k}{as} \PYG{n+nn}{nn}
+
+\PYG{k}{class} \PYG{n+nc}{TwinNet}\PYG{p}{(}\PYG{n}{nn}\PYG{o}{.}\PYG{n}{Module}\PYG{p}{):}
+    \PYG{k}{def} \PYG{n+nf+fm}{\PYGZus{}\PYGZus{}init\PYGZus{}\PYGZus{}}\PYG{p}{(}\PYG{n+nb+bp}{self}\PYG{p}{,} \PYG{n}{share\PYGZus{}weight}\PYG{p}{,} \PYG{n}{aux\PYGZus{}loss}\PYG{p}{):}
+        \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{aux\PYGZus{}loss} \PYG{o}{=} \PYG{n}{aux\PYGZus{}loss}
+        \PYG{k}{if} \PYG{n}{share\PYGZus{}weight}\PYG{p}{:}
+            \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{lenet1} \PYG{o}{=} \PYG{n}{LeNet}\PYG{p}{()}
+            \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{lenet2} \PYG{o}{=} \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{lenet1}
+        \PYG{k}{else}\PYG{p}{:}
+            \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{lenet1} \PYG{o}{=} \PYG{n}{LeNet}\PYG{p}{()}
+            \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{lenet2} \PYG{o}{=} \PYG{n}{LeNet}\PYG{p}{()}
+        \PYG{c+c1}{\PYGZsh{} ...}
+    \PYG{k}{def} \PYG{n+nf}{forward}\PYG{p}{(}\PYG{n+nb+bp}{self}\PYG{p}{,} \PYG{n+nb}{input}\PYG{p}{):}
+        \PYG{c+c1}{\PYGZsh{} ...}
+        \PYG{k}{if} \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{aux\PYGZus{}loss}\PYG{p}{:}
+            \PYG{k}{return} \PYG{p}{(}\PYG{n}{output}\PYG{p}{,} \PYG{n}{output1}\PYG{p}{,} \PYG{n}{output2}\PYG{p}{)}
+        \PYG{k}{else}\PYG{p}{:}
+            \PYG{k}{return} \PYG{p}{(}\PYG{n}{output}\PYG{p}{,)}
+
+\PYG{k}{def} \PYG{n+nf}{train\PYGZus{}model}\PYG{p}{(}\PYG{o}{*}\PYG{n}{args}\PYG{p}{):}
+    \PYG{c+c1}{\PYGZsh{} ...}
+    \PYG{k}{for} \PYG{n}{pred}\PYG{p}{,} \PYG{n}{target} \PYG{o+ow}{in} \PYG{n+nb}{zip}\PYG{p}{(}\PYG{n}{preds}\PYG{p}{,} \PYG{n}{targes}\PYG{p}{):}
+        \PYG{n}{loss} \PYG{o}{+=} \PYG{n}{criterion}\PYG{p}{(}\PYG{n}{pred}\PYG{p}{,} \PYG{n}{target}\PYG{p}{)}
+    \PYG{c+c1}{\PYGZsh{} ...}
+\end{Verbatim}
