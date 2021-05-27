@@ -15,10 +15,10 @@ class LeNet(nn.Module):
     def __init__(self):
         super().__init__()
         self.act = nn.ReLU()
-        self.conv1 = nn.Conv2d(1, 32, 3)
-        self.conv2 = nn.Conv2d(32, 64, 3)
+        self.conv1 = nn.Conv2d(1, 16, 3)
+        self.conv2 = nn.Conv2d(16, 32, 3)
         self.pool1 = nn.AvgPool2d(2, 2)
-        self.lin1 = nn.Linear(256, 32)
+        self.lin1 = nn.Linear(128, 32)
         self.bn1 = nn.BatchNorm1d(32)
         self.do1 = nn.Dropout(0.25)
         self.lin2 = nn.Linear(32, 10)
