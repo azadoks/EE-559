@@ -5,6 +5,7 @@
 __author__ = "Austin Zadoks"
 
 import time
+import typing as ty
 import warnings
 
 import torch
@@ -21,16 +22,27 @@ warnings.filterwarnings('ignore')
 torch.set_num_threads(1)  # Ensure a fair environment for timing  pylint: disable=no-member
 
 
-def train_round(
-    criterion,
-    optimizer,
-    optimizer_params,
-    share_weight,
-    aux_loss,
-    n_pairs,
-    batch_size,
-    n_epochs
-):
+def train_round(criterion,
+                optimizer,
+                optimizer_params: ty.Dict,
+                share_weight: bool,
+                aux_loss: bool,
+                n_pairs: int,
+                batch_size: int,
+                n_epochs: int) -> ty.Tuple[ty.Dict]:
+    """
+    Perform a round of training on a Proj1Net model.
+
+    :param criterion: loss criterion
+    :param optimizer: optimizer
+    :param optimizer_params: optimizer parameters dictionary
+    :param share_weight: share subnet weights within MNIST image pairs
+    :param aux_loss: use auxiliary loss on subnet outputs
+    :n_pairs: number of image pairs
+    :batch_size: number of image pairs per batch
+    :n_epochs: number of epochs for training
+    :returns: training history dictionary and final loss, error, and time dictionary
+    """
     train_loader, test_loader = data.load_data(n_pairs, batch_size)
     model = models.Proj1Net(share_weight, aux_loss)
     criterion = criterion()
@@ -53,7 +65,20 @@ def train_round(
     return history, result
 
 
-def train_n_rounds(n_rounds, base_seed=None, do_plot=False, **kwargs):
+def train_n_rounds(n_rounds: int,
+                   base_seed: ty.Optional[int]=None,
+                   do_plot: bool=False,
+                   **kwargs) -> ty.List[ty.Dict]:
+    """
+    Train a Proj1Net model for many rounds with different random seeds. Prints round results and
+    mean +- standard devation over all rounds.
+
+    :param n_rounds: number of rounds
+    :param base_seed: starting seed, incremeted by 1 each round
+    :param do_plot: create histories plot after training
+    :param kwargs: keyword arguments passed to `train_round`
+    :returns: results for each round
+    """
     results = {
         'train_loss': torch.zeros(n_rounds),  # pylint: disable=no-member
         'test_loss': torch.zeros(n_rounds),  # pylint: disable=no-member
@@ -63,6 +88,7 @@ def train_n_rounds(n_rounds, base_seed=None, do_plot=False, **kwargs):
     }
     histories = []
 
+    log.print_round_header()
     for r in range(n_rounds):
         if base_seed is not None:
             torch.manual_seed(base_seed + r)
@@ -73,26 +99,31 @@ def train_n_rounds(n_rounds, base_seed=None, do_plot=False, **kwargs):
         for key, value in result.items():
             results[key][r] = value
         
-        log.print_round_result(result, r, n_rounds)
+        log.print_round_line(result, r, n_rounds)
+    log.print_round_footer()
 
     log.print_round_statistics(results)
     if do_plot:
         plot.plot_histories(
             histories,
-            filename=(f'round={r}__share_weight={kwargs["share_weight"]}'
-                        f'__aux_loss={kwargs["aux_loss"]}.png')
+            nrow=4,
+            ncol=4,
+            filename=(
+                f'plots/share_weight={kwargs["share_weight"]}__aux_loss={kwargs["aux_loss"]}.png'
+            )
         )
 
     return results
 
 
 def main():
+    """
+    Train a Proj1Net model for combinations of weight sharing and auxiliary loss for multiple
+    rounds.
+    """
     seed = 2021
-    n_rounds = 10
+    n_rounds = 2
     plot = True
-
-    import torchsummary
-    torchsummary.summary(models.Proj1Net(), (2, 14, 14))
 
     training_parameters = {
         'criterion': nn.CrossEntropyLoss,
@@ -106,6 +137,7 @@ def main():
     for share_weight, aux_loss in [(False, False), (True, False), (False, True), (True, True)]:
         print(f'Weight sharing {share_weight}, Auxiliary loss {aux_loss}')
         print(''.join(['=']*100))
+        print()
         
         training_parameters['share_weight'] = share_weight
         training_parameters['aux_loss'] = aux_loss
