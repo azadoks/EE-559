@@ -49,7 +49,8 @@ def train_proj1net(model: models.Proj1Net,
                    criterion,
                    train_loader: data.DataLoader,
                    test_loader: data.DataLoader,
-                   n_epochs: int) -> ty.Dict[str, torch.Tensor]:
+                   n_epochs: int,
+                   full_history: bool) -> ty.Dict[str, torch.Tensor]:
     """
     Train a LeNet-style convolutional neural network to learn if the digit in the first MNIST
     image in a pair is lesser or equal to the digit in the second image.
@@ -60,6 +61,7 @@ def train_proj1net(model: models.Proj1Net,
     :param train_loader: training data loader
     :param test_loader: test data loader
     :param n_epochs: number of epochs
+    :full_history: track train and test loss and error
     :returns: history dictionary with training and test loss and error data
     """
     history = {
@@ -91,9 +93,10 @@ def train_proj1net(model: models.Proj1Net,
         model.train(False)
         with torch.no_grad():  # pylint: disable=no-member
             history['train_loss'][epoch] /= (len(train_loader.dataset) / train_loader.batch_size)
-            history['test_loss'][epoch] = compute_loss(model, criterion, test_loader)
-            history['train_err'][epoch] = compute_error(model, train_loader)
-            history['test_err'][epoch] = compute_error(model, test_loader)
+            if full_history:
+                history['test_loss'][epoch] = compute_loss(model, criterion, test_loader)
+                history['train_err'][epoch] = compute_error(model, train_loader)
+                history['test_err'][epoch] = compute_error(model, test_loader)
         model.train(True)
 
     return history
