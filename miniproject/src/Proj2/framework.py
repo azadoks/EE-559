@@ -117,10 +117,8 @@ class Tanh(Module):
         return inputs.tanh()
 
     def backward(self, doutput):
-        dtanh = 1 - self.inputs.tanh().pow(2)
+        dtanh = self.inputs.cosh().pow(-2)
         return dtanh * doutput
-        # dtanh = self.inputs.cosh().pow(-2)
-        # return dtanh * doutput
 
 
 class MSELoss(Module):

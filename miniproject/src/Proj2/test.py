@@ -37,10 +37,15 @@ def train_selected_model(
                                 batch_size)
     t1 = time.perf_counter()
 
-    print(f'Final train loss:       {train.compute_loss(model, criterion, train_data, batch_size):8.4e} [ ]')
-    print(f'Final train accuracy:     {train.compute_accuracy(model, train_data, batch_size)*100:8.2f} [%]')
-    print(f'Final test loss:        {train.compute_loss(model, criterion, test_data, batch_size):8.4e} [ ]')
-    print(f'Final test accuracy:      {train.compute_accuracy(model, test_data, batch_size)*100:8.2f} [%]')
+    train_loss = train.compute_loss(model, criterion, train_data, batch_size)
+    train_acc = train.compute_accuracy(model, train_data, batch_size) * 100
+    test_loss = train.compute_loss(model, criterion, test_data, batch_size)
+    test_acc = train.compute_accuracy(model, test_data, batch_size) * 100
+
+    print(f'Final train loss:       {train_loss:8.4e} [ ]')
+    print(f'Final train accuracy:     {train_acc:8.2f} [%]')
+    print(f'Final test loss:        {test_loss:8.4e} [ ]')
+    print(f'Final test accuracy:      {test_acc:8.2f} [%]')
     print(f'Time:                     {t1 - t0:8.2f} [s]')
 
     if plot_history:
@@ -54,15 +59,15 @@ def main(plot_history=False, plot_points=False):
         'activation': framework.ReLU,
         'learning_rate': 4e-2,
         'momentum': 0.4,
-        'plot_history': 'relu_history.png' if plot_history else False,
-        'plot_points': 'relu_points.png' if plot_points else False
+        'plot_history': 'relu_history.pdf' if plot_history else False,
+        'plot_points': 'relu_points.pdf' if plot_points else False
     }
     tanh_params = {
         'activation': framework.Tanh,
         'learning_rate': 1.8e-1,
         'momentum': 0.5,
-        'plot_history': 'tanh_history.png' if plot_history else False,
-        'plot_points': 'tanh_points.png' if plot_points else False
+        'plot_history': 'tanh_history.pdf' if plot_history else False,
+        'plot_points': 'tanh_points.pdf' if plot_points else False
     }
     
     print('ReLU')
