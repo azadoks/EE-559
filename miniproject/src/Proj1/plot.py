@@ -56,6 +56,14 @@ def plot_avg_histories(
             history['train_loss'][0] - history['train_loss'][1],
             history['train_loss'][0] + history['train_loss'][1],
             alpha=0.2, color='tab:blue')
+        ax.semilogy(x, 
+            history['test_loss'][0],
+            c='tab:green',
+            label='Test loss' if i == 0 else None)
+        ax.fill_between(x,
+            history['test_loss'][0] - history['test_loss'][1],
+            history['test_loss'][0] + history['test_loss'][1],
+            alpha=0.2, color='tab:green')
         ax.set_xlabel('Epoch')
         ax.set_ylabel('Loss')
 
@@ -80,6 +88,6 @@ def plot_avg_histories(
 
         ax.set_title(f'Wt. share={share_weight}, Aux. loss={aux_loss}')
 
-    fig.legend(loc='lower center', ncol=3)
+    fig.legend(loc='lower center', ncol=2)
     fig.tight_layout()
     fig.savefig(filename)

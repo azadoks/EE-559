@@ -56,6 +56,12 @@ class TwinNet(nn.Module):
         self.aux_loss = aux_loss
 
         # use seperate subnets when not weight sharing or the same when weight sharing
+        # if self.share_weight:
+        #     self.lenet1 = LeNet()
+        # else:
+        #     self.lenet1 = LeNet()
+        #     self.lenet2 = LeNet()
+
         self.lenet1 = LeNet()
         if self.share_weight:
             self.lenet2 = self.lenet1
@@ -78,6 +84,8 @@ class TwinNet(nn.Module):
         input2 = input[:, 1]
         input2 = input2.unsqueeze(1)
         output2 = self.lenet2(input2)
+        # if self.share_weight:
+        #     output2 = self.lenet1(input2)
 
         # combine the subnet outputs and push through prediction linear layers
         output = [output1, output2]

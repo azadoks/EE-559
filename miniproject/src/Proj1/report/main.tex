@@ -8,6 +8,10 @@
 \usepackage{subcaption}
 \usepackage{minted}
 \usepackage{fancyvrb}
+\usepackage{booktabs}
+\usepackage{siunitx}
+
+\sisetup{output-exponent-marker=\ensuremath{\mathrm{e}}}
 
 % title
 \begin{document}
@@ -18,7 +22,7 @@
 \noaffiliation
 
 \begin{abstract}
-    Handwriting recognition and image comparison are posterchildren for the success of deep convolutional neural networks. In this report, I summarize a twin neural network implementation for predicting which digit is the greater in a pair of sub-sampled MNIST images. I also discuss the effects of weight sharing and auxiliary loss on the performance of the model. A twin neural network trained on 1000 image pairs over 25 epochs with weight sharing and auxiliary loss achieves an average test accuracy of 95.22~$\pm$~0.62~\% in FILL~$\pm$~FILL~seconds ($N=16$).
+    Handwriting recognition and image comparison are posterchildren for the success of deep convolutional neural networks. In this report, I summarize a twin neural network implementation for predicting which digit is the greater in a pair of subsampled MNIST images. I also discuss the effects of weight sharing and auxiliary loss on the performance of the model. A twin neural network with $\sim$20,000 parameters trained on 1000 image pairs over 25 epochs with weight sharing and auxiliary loss achieves an average test accuracy of 94.97~$\pm$~0.90~\% in 3.51~$\pm$~0.28~seconds on the course VM ($N=32$).
 \end{abstract}
 
 \maketitle
@@ -27,9 +31,9 @@
 The goal of this miniproject is to design a deep neural network which takes pairs of $14 \times 14$ grayscale images of handwritten digits from the MNIST database and predicts if the first digit is lesser or equal to the second digit.
 Corresponding to each pair of images, we are given both a binary target which corresponds to whether the first digit is truly less than or equal to the second digit and the classes of the two digits in the image pair.
 
-Given that we have knowlege of the classes of the two images, we can conceptually approach this problem in two steps: (1) construct a network which predicts the class of each of the images, and (2) construct a network which takes two outputs from the first network and predicts whether the digit in the first image is lesser or equal to that in the second.
+One can conceptually approach this problem in two steps: (1) construct a network which predicts the class of each of the images, and (2) construct a network which takes two outputs from the first network and predicts whether the digit in the first image is lesser or equal to that in the second.
 
-To solve the first problem, a LeNet-5 style convolutional neural network is a good approach. For the second, a simple multilayer perceptron or fully-connected network should be both efficient and effective. If a convolutional network that uses the same weights is used for the first step, the overall network is called a twin network.
+To solve the first problem, a LeNet-5 style convolutional neural network is a good approach. For the second, a simple multilayer perceptron or fully-connected network should be both efficient and effective. If a convolutional network that uses the same weights for both images in each pair is used for the first step, the overall network is called a twin or siamese network.
 
 \section{Model architecture}
 \begin{figure}[h!]
@@ -39,7 +43,7 @@ To solve the first problem, a LeNet-5 style convolutional neural network is a go
     \label{fig:lenet}
 \end{figure}
 
-The convoluational subnet architecture, shown in Fig. \ref{fig:lenet}, takes in one image of shape $1 \times 14 \times 14$ and returns a vector of length $10$, containing the predicted categorization of the image as a digit 0-9. Written as an equivalent \texttt{torch.nn.Sequential} model, the convolutional subnet is:
+The convoluational subnet architecture, shown in Fig. \ref{fig:lenet}, takes in one image of shape $1 \times 14 \times 14$ and returns a vector of length $10$ containing the predicted categorization of the image as a digit 0-9. Written as an equivalent \texttt{torch.nn.Sequential} model, the convolutional subnet is:
 
 \begin{minted}[fontsize=\small]{python}
 import torch.nn as nn
@@ -59,7 +63,7 @@ nn.Sequential(
 )
 \end{minted}
 
-Testing showed that ReLU activation to be more stable and to give higher accuracy than tanh activation. Dropout is used after the output hidden layer to reduce overfitting by the model. Batch normalization is used to improve training stability by reducing the risk of vanishing gradients.
+Testing showed that ReLU activation to be more stable and to give higher accuracy than tanh activation. Dropout is used after the output hidden layer to reduce overfitting by the model. Batch normalization is used to improve training stability by reducing the risk of vanishing gradients. \texttt{torchsummary} reports that this convolutional network has 9,322 parameters.
 
 The fully-connected subnet takes in two concatenated outputs from the convolutional subnet and is equivalent to the following \texttt{torch.nn.Sequential} model:
 
@@ -76,9 +80,9 @@ nn.Sequential(
 )
 \end{minted}
 
-The model begins with an activation because it is taking input directly from the final linear layer of the convolutional model above. Just as in the final fully-connected layers of the convolutional model, batch normalization is used for stability and dropout is used to avoid overfitting.
+The model begins with an activation because it is taking input directly from the final linear layer of the convolutional model above. Just as in the final fully-connected layers of the convolutional model, batch normalization is used for stability and dropout is used to avoid overfitting. \texttt{torchsummary} reports that this fully-connected model has 252 parameters.
 
-The goal of this project is to predict whether the first image in a pair contains a digit of lesser or equal value than the second image. In order to acheive this goal, the two subnets above must be combined, but there is a choice to make: should two separate convolutional subnets (with separate weights) be used for the two images, or should they share the same weights? Additionally, we have access to the intermediate outputs of the convolutional subnet(s); can we use those to our benefit? 
+The goal of this project is to predict whether the first image in a pair contains a digit of lesser or equal value than the second image. In order to acheive this goal, the two subnets above must be combined, but there is a choice to make: should two separate convolutional subnets (with separate weights) be used for the two images, or should they share the same weights? Additionally, we have access to both the intermediate outputs of the convolutional subnet(s) and the corresponding ground truths; can we use those to our benefit? 
 
 \section{Weight sharing and auxiliary loss}
 My \texttt{TwinNet} implementation allows for weight sharing and/or the use of auxiliary losses. This is acheived by two options in its constructor. The training function then supports calculating loss from multiple predictions:
@@ -103,9 +107,9 @@ class TwinNet(nn.Module):
         else:
             return (output,)
 
-def train_model(*args):
+def train_twin_net(*args):
     # ...
-    for pred, target in zip(preds, targes):
+    for pred, target in zip(preds, targets):
         loss += criterion(pred, target)
     # ...
 \end{minted}
@@ -114,22 +118,48 @@ In pracice, this means that if weight sharing is disabled, the \texttt{TwinNet} 
 
 Optionally, both the target output and the auxiliary outputs of the convolutional subnet(s) are returned by \texttt{TwinNet.forward} and used to calculate the loss.
 
-Leveraging this implementation, four different training methods have been tested corresponding to the possible combinations of weight sharing and use of auxiliary loss.
+Leveraging this implementation, four different training methods / architectures have been tested corresponding to the possible combinations of weight sharing and use of auxiliary loss.
 
 \section{Training}
-Training is performed for each combination of weight sharing and auxiliary loss in 16 rounds for statistical sampling. Each round consists of providing a new random seed to \texttt{PyTorch}, generating 1000 pairs each of training images and test images, and training for 25 epochs with a batch size of 25. Optimization is performed using ADAM ($\eta = 1\times10^{-2}$), and loss is calculated using cross-entropy.
+Training is performed for each combination of weight sharing and auxiliary loss in 32 rounds for statistical sampling. Each round consists of providing a new random seed to \texttt{PyTorch}, generating 1000 pairs each of training images and test images, and training for 25 epochs with a batch size of 128. Optimization is performed using ADAM ($\eta = 1\times10^{-2}$). Loss is calculated using cross-entropy, as is conventional for classification problems. Error is calculated using a ``winner-take-all'' method applied directly to the \texttt{TwinNet} outputs.
 
-Example training curves for the different combinations of weight sharing and auxiliary loss are shown in \ref{fig:training-curves}.
+The optimal $\eta$ was determined using a 1D grid search over values from $1\times10^{-3}$ to $1\times10^{-1}$. Visual inspection of the training curves suggested that $1\times10^{-2}$ yields a good balance of stability and performance. Similarly, batch sizes from 8 to 128 were tested, and 128 was selected.
 
-\begin{figure}[b]
+Training curves averaged over the 32 rounds for the different combinations of weight sharing and auxiliary loss are shown in Fig. \ref{fig:training-curves}.
+
+\begin{figure}[h!]
     \centering
     \includegraphics[width=\linewidth]{figures/avg_histories.pdf}
-    \caption{Mean training curves for combinations of weight sharing and auxiliary loss with standard deviation fill ($N=32$).}
+    \caption{Mean training curves for combinations of weight sharing and auxiliary loss with standard devation uncertainty shading ($N=32$).}
     \label{fig:training-curves}
 \end{figure}
 
 
-\section{Results}
+\section{Results and Discussion}
+In the miniproject assignment document, it is stated that a simple convolutional network with $\sim$70,000 parameters can reach an error rate of $\sim$15\% in 25 epochs and $\sim$2 seconds. In a sense, a twin network with no shared weights or auxiliary loss can be seen as a convolutional network where each convolution has 2 groups. This is not strictly true as other layers in the network may mix the two input groups, however it is a useful analogy for comparing the performance reported in the first line of Table \ref{tab:results}. As expected from this analogy, the peformance of the non-weight-shared twin network is similar, if slightly worse, than a standard convolutional network.
 
+However, with the addition of weight sharing, the error falls to 12\%; with auxiliary loss it falls to 7\%; and with both weight sharing and auxiliary loss, the twin network achieves 5\% training error.
+
+\begin{table}[h!]
+    \caption{Training results ($N=32$)}
+    \label{tab:results}
+    \begin{tabular}{cc|lllll}
+    \multicolumn{1}{l}{Wt} & \multicolumn{1}{l|}{Aux.} & \multicolumn{2}{c}{Final loss} & \multicolumn{2}{c}{Final error (\%)} & \\
+    \multicolumn{1}{l}{Share} & \multicolumn{1}{l|}{Loss} & Training & Test & Training & Test & Time (s) \\ \hline
+       &   & 0.08$\pm$0.06 & 0.6$\pm$0.1 & 3.1$\pm$2.4 & 16.7$\pm$1.7 & 3.7$\pm$0.2  \\
+    X  &   & 0.04$\pm$0.02 & 0.4$\pm$0.07 & 1.2$\pm$0.7 & 12.7$\pm$1.6 & 3.7$\pm$0.3  \\
+       & X & 0.07$\pm$0.02 & 0.6$\pm$0.07 & 0.6$\pm$0.3 & 6.6$\pm$0.8 & 3.9$\pm$0.3  \\
+    X  & X & 0.06$\pm$0.03 & 0.4$\pm$0.08 & 0.4$\pm$0.3 & 5.0$\pm$0.9 & 3.6$\pm$0.3 
+    \end{tabular}
+    \end{table}
+
+Both weight sharing and auxiliary loss independently improve the final error, however as shown by the test loss and test accuracy curves in Fig. \ref{fig:training-curves}, auxiliary loss is the more powerful method for improving model performance. With weight sharing but no auxiliary loss, the model overfits the input, shown by the postive curvature in the corresponding test loss curve. The auxiliary loss seems to lessen this overfitting.
+
+This may not be a true fault of weight sharing. Because twice as many data points are used to train the convolutional subnet, it is inherently much more likey to overfit. One way to avoid this could be to increase the dropout rate or add more dropout layers to the model in the case of weight sharing without auxiliary loss.
+
+More rigorous study of model implemenation details and training methods, including but not limited to comparisons with other model architectures, the optimizer and its parameters, and better or more advanced data treatment practices could be performed to improve the model performance.
+
+\section{Conclusions}
+Here, I have presented an implementation of a twin neural network to the problem of classifying and comparing images. Without weight sharing or auxiliary loss, this model peforms slightly worse than a simple convolutional network, however it does so with less than half the model parameters. The addition of weight sharing and particularly of auxiliary loss drastically improve the model performance, achieving down to $\sim$5\% training error in this implementation.
 
 \end{document}
