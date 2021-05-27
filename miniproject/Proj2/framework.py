@@ -38,19 +38,21 @@ class Linear(Module):
         self.in_features = in_features
         self.out_features = out_features
         
-        lim = 1 / math.sqrt(self.in_features)
+        lim = 1 / math.sqrt(self.in_features)  # PyTorch Linear weight initialization
 
+        # initialize weight and bias to uniform sampling (-sqrt(1/features), sqrt(1/features))
         self.weight = empty((self.out_features, self.in_features)).uniform_(-lim, lim)
         self.bias = empty(self.out_features).uniform_(-lim, lim)
+        # initialize gradients to 0
         self.dweight = empty((self.out_features, self.in_features)).fill_(0)
         self.dbias = empty(self.out_features).fill_(0)
 
     def forward(self, input):
         self.input = input
-        return self.bias.addmm(self.input, self.weight.t())
+        return self.bias.addmm(self.input, self.weight.t())  # x @ w.T + b
 
     def backward(self, doutputs):
-        self.dbias.add_(doutputs.sum(0))
+        self.dbias.add_(doutputs.sum(0))  # dx / db = 
         self.dweight.add_(doutputs.t().mm(self.input))
         return doutputs.mm(self.weight)
 

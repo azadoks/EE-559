@@ -20,9 +20,9 @@ def plot_history(history, filename='history.png'):
     ax.legend(loc='upper left')
     
     twin_ax = ax.twinx()
-    twin_ax.plot(history['train_acc'], label='Train accuracy', c='tab:red')
-    twin_ax.plot(history['test_acc'], label='Test accuracy', c='tab:green')
-    twin_ax.set_ylabel('Accuracy [%]')
+    twin_ax.plot(history['train_err'], label='Train error', c='tab:red')
+    twin_ax.plot(history['test_err'], label='Test error', c='tab:green')
+    twin_ax.set_ylabel('Error [%]')
     twin_ax.legend(loc='upper right')
 
     fig.tight_layout()

@@ -23,12 +23,19 @@ def build_model(act):
     )
 
 
-def compute_accuracy(model, data, batch_size):
-    acc = []
+def compute_error(model, data, batch_size):
+    """
+    Use a sigmoid function and rounding to convert model outputs to binary values for computing
+    error. The sigmoid function maps values onto a range between 0 and 1. Rounding its output
+    gives either 1 (in the circle) or 0 (outside the circle).
+
+    sigmoid(x) = 1 / (1 + exp(-x))
+    """
+    err = []
     for batch in zip(data[0].split(batch_size), data[1].split(batch_size)):
         prediction = model(batch[0])
-        acc.append((prediction.sigmoid().round() == batch[1]).sum() / batch[1].numel())
-    return sum(acc) / len(acc)
+        err.append((prediction.sigmoid().round() != batch[1]).sum() / batch[1].numel())
+    return sum(err) / len(err)
 
 
 def compute_loss(model, criterion, data, batch_size):
@@ -43,8 +50,8 @@ def train_model(model, optimizer, criterion, train_data, test_data, n_epochs, ba
     history = {
         'train_loss': empty(n_epochs).fill_(0),
         'test_loss': empty(n_epochs).fill_(0),
-        'train_acc': empty(n_epochs).fill_(0),
-        'test_acc': empty(n_epochs).fill_(0)
+        'train_err': empty(n_epochs).fill_(0),
+        'test_err': empty(n_epochs).fill_(0)
     }
 
     for epoch in range(n_epochs):
@@ -58,8 +65,8 @@ def train_model(model, optimizer, criterion, train_data, test_data, n_epochs, ba
             optimizer.step()
         
         history['train_loss'][epoch] = history['train_loss'][epoch] / batch_size
-        history['train_acc'][epoch] = compute_accuracy(model, train_data, batch_size)
         history['test_loss'][epoch] = compute_loss(model, criterion, test_data, batch_size)
-        history['test_acc'][epoch] = compute_accuracy(model, test_data, batch_size)
+        history['train_err'][epoch] = compute_error(model, train_data, batch_size)
+        history['test_err'][epoch] = compute_error(model, test_data, batch_size)
 
     return history

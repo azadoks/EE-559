@@ -38,14 +38,14 @@ def train_selected_model(
     t1 = time.perf_counter()
 
     train_loss = train.compute_loss(model, criterion, train_data, batch_size)
-    train_acc = train.compute_accuracy(model, train_data, batch_size) * 100
+    train_err = train.compute_error(model, train_data, batch_size) * 100
     test_loss = train.compute_loss(model, criterion, test_data, batch_size)
-    test_acc = train.compute_accuracy(model, test_data, batch_size) * 100
+    test_err = train.compute_error(model, test_data, batch_size) * 100
 
     print(f'Final train loss:       {train_loss:8.4e} [ ]')
-    print(f'Final train accuracy:     {train_acc:8.2f} [%]')
+    print(f'Final train error:     {train_err:8.2f} [%]')
     print(f'Final test loss:        {test_loss:8.4e} [ ]')
-    print(f'Final test accuracy:      {test_acc:8.2f} [%]')
+    print(f'Final test error:      {test_err:8.2f} [%]')
     print(f'Time:                     {t1 - t0:8.2f} [s]')
 
     if plot_history:
@@ -66,7 +66,7 @@ def main(plot_history=False, plot_points=False):
         'activation': framework.Tanh,
         'learning_rate': 1.8e-1,
         'momentum': 0.5,
-        'plot_history': 'tanh_history.pdf' if plot_history else False,
+        'plot_history': 'tanh_history.png' if plot_history else False,
         'plot_points': 'tanh_points.pdf' if plot_points else False
     }
     
@@ -84,4 +84,4 @@ def main(plot_history=False, plot_points=False):
 if __name__ == '__main__':
     set_grad_enabled(False)
     manual_seed(2021)
-    main(True, True)
+    main(plot_history=False, plot_points=False)
