@@ -6,7 +6,6 @@ __author__ = "Austin Zadoks"
 
 import time
 import typing as ty
-import warnings
 
 import torch
 from torch import nn, optim
@@ -16,10 +15,6 @@ import log
 import models
 import plot
 import train
-
-
-warnings.filterwarnings('ignore')
-torch.set_num_threads(1)  # Ensure a fair environment for timing  pylint: disable=no-member
 
 
 def train_round(criterion,
@@ -122,8 +117,8 @@ def main():
     rounds.
     """
     seed = 2021
-    n_rounds = 2
-    plot = True
+    n_rounds = 16
+    plot = False
 
     training_parameters = {
         'criterion': nn.CrossEntropyLoss,
