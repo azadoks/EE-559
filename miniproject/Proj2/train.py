@@ -4,12 +4,17 @@
 
 __author__ = "Austin Zadoks"
 
-from torch import empty
+from torch import empty  # pylint: disable=no-name-in-module
 
 import framework
 
 
 def build_model(act):
+    """
+    Build the sequential model defined in the project prompt.
+
+    :param act: activation module
+    """
     return framework.Sequential(
         framework.Linear(2, 25),
         act(),
@@ -23,21 +28,36 @@ def build_model(act):
     )
 
 
-def compute_error(model, data, batch_size):
+def compute_error(model: framework.Module, data, batch_size: int):
     """
+    Compute error rate using minibatches.
+
     Use a tanh function and rounding to convert model outputs to binary values for computing
     error. The tanh function maps values onto a range between 0 and 1. Rounding its output
     gives either 1 (in the circle) or 0 (outside the circle).
+
+    :param model: model
+    :param data: (input, target)
+    :param batch_size: batch size
+    :returns: error rate
     """
     err = []
     for batch in zip(data[0].split(batch_size), data[1].split(batch_size)):
         prediction = model(batch[0])
-        # err.append((prediction.sigmoid().round() != batch[1]).sum() / batch[1].numel())
         err.append((prediction.tanh().round() != batch[1]).sum() / batch[1].numel())
     return sum(err) / len(err)
 
 
-def compute_loss(model, criterion, data, batch_size):
+def compute_loss(model: framework.Module, criterion: framework.Module, data: tuple,
+                 batch_size: int):
+    """
+    Compute loss using minibatches.
+
+    :param model: model
+    :param criterion: loss criterion
+    :param data: (input, target)
+    :param batch_size: batch size
+    """
     loss = []
     for batch in zip(data[0].split(batch_size), data[1].split(batch_size)):
         prediction = model(batch[0])
@@ -47,6 +67,19 @@ def compute_loss(model, criterion, data, batch_size):
 
 def train_model(model, optimizer, criterion, train_data, test_data, n_epochs, batch_size,
                 track_history):
+    """
+    Train a model using minibatches.
+
+    :param model: model
+    :param optimizeer: optimizer
+    :param criterion: loss criterion
+    :param train_data: (train input, train target)
+    :param test_data: (test data, test_target)
+    :param n_epochs: number of epochs
+    :param batch_size: batch size
+    :param track_history: trach loss and error by epoch
+    :returns: history dictionary
+    """
     history = {
         'train_loss': empty(n_epochs).fill_(0),
         'test_loss': empty(n_epochs).fill_(0),

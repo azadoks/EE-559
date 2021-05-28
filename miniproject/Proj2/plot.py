@@ -7,30 +7,6 @@ __author__ = "Austin Zadoks"
 import math
 import typing as ty
 
- 
-def plot_history(history, filename='history.png'):
-    try:
-        import matplotlib.pyplot as plt
-    except ImportError:
-        return
-
-    fig, ax = plt.subplots(dpi=300, figsize=(7,5))
-    
-    ax.semilogy(history['train_loss'] * 100, label='Train loss', c='tab:blue')
-    ax.semilogy(history['test_loss'] * 100, label='Test loss', c='tab:orange')
-    ax.set_xlabel('Epoch')
-    ax.set_ylabel('MSE Loss')
-    
-    twin_ax = ax.twinx()
-    twin_ax.plot(history['train_err'] * 100, label='Train error', c='tab:red')
-    twin_ax.plot(history['test_err'] * 100, label='Test error', c='tab:green')
-    twin_ax.set_ylabel('Error [%]')
-
-    fig.legend(loc='upper center', ncol=4)
-    fig.tight_layout()
-
-    fig.savefig(filename)
-
 
 def plot_avg_histories(all_histories: ty.List[ty.Dict], filename: str='avg_history.png'):
     """
@@ -41,7 +17,7 @@ def plot_avg_histories(all_histories: ty.List[ty.Dict], filename: str='avg_histo
     """
     try:
         import matplotlib.pyplot as plt
-        from torch import vstack
+        from torch import vstack  # I cheated here for the plots, sorry!
     except ImportError:
         return
 
@@ -110,6 +86,14 @@ def plot_avg_histories(all_histories: ty.List[ty.Dict], filename: str='avg_histo
 
 
 def plot_points(train_data, test_data, model, filename='points.png'):
+    """
+    Plot input data, colored by model output and classification.
+
+    :param train_data: (training input, training target)
+    :param test_data: (test input, test_output)
+    :param model: trained model
+    :param filename: filename for plot saving
+    """
     try:
         import matplotlib.pyplot as plt
     except ImportError:

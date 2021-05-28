@@ -25,6 +25,19 @@ def train_selected_model(
     track_history=False,
     plot_points=False
 ):
+    """
+    Train a miniproject model with a given activation using SGD and MSE loss.
+
+    :param activation: activation function
+    :param learning_rate: SGD learning rate
+    :param momentum: SGD momentum
+    :param n_points: number of points in training and test data
+    :param n_epochs: number of epochs
+    :param batch_size: batch size
+    :param trach_history: track training and test error and loss by epoch
+    :param plot_points: generate plots visualing model predictions of the training and test data
+    :returns: (history dictionary, final results)
+    """
     train_data, test_data = data.generate_data(n_points)
 
     model = train.build_model(activation)
@@ -51,6 +64,17 @@ def train_selected_model(
 
 
 def main(n_rounds, base_seed, plot_history=False, plot_points=False):
+    """
+    Miniproject test solution.
+
+    Trains linear models with ReLU and tanh activation for a number of rounds, incrementing
+    the base seed by one each round.
+
+    :param n_rounds: number of rounds
+    :param base_seed: staring seed value
+    :param plot_history: track and plot training history by epoch
+    :param plot_points: visualize model predictions on the training and test data
+    """
     manual_seed(base_seed)
 
     relu_params = {
@@ -112,5 +136,4 @@ if __name__ == '__main__':
     n_rounds = 32
     base_seed = 2021
 
-    manual_seed(2021)
     main(n_rounds, base_seed, plot_history=False, plot_points=False)

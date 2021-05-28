@@ -6,7 +6,7 @@ __author__ = "Austin Zadoks"
 
 import typing as ty
 
-from torch import empty
+from torch import empty  # pylint: disable=no-name-in-module
 
 def print_round_header():
     """Print the header for round results."""
@@ -15,7 +15,13 @@ def print_round_header():
 
 
 def print_round_line(result: ty.Dict, r: int, n_rounds: int):
-    """Print the results of a round."""
+    """
+    Print the results of a round.
+    
+    :param results: dictionary
+    :param r: round index
+    :param n_rounds: number of rounds
+    """
     end = '  |  '
     print(f'{r+1:2d}/{n_rounds:2d}', end=end)
     print(f'{result["train_loss"]:8.4e}', end=end)
