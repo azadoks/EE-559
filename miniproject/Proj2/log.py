@@ -14,7 +14,7 @@ def print_round_header():
     print('---------------------------------------------------------------------------------')
 
 
-def print_round_line(result: ty.Dict, r: int, n_rounds: int):
+def print_round_line(result: dict, r: int, n_rounds: int):
     """
     Print the results of a round.
     

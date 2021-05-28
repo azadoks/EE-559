@@ -4,12 +4,14 @@
 
 __author__ = "Austin Zadoks"
 
+import typing as ty
+
 from torch import empty  # pylint: disable=no-name-in-module
 
 import framework
 
 
-def build_model(act):
+def build_model(act: ty.Union[framework.Tanh, framework.ReLU]) -> framework.Sequential:
     """
     Build the sequential model defined in the project prompt.
 
@@ -28,7 +30,7 @@ def build_model(act):
     )
 
 
-def compute_error(model: framework.Module, data, batch_size: int):
+def compute_error(model: framework.Module, data: tuple, batch_size: int) -> float:
     """
     Compute error rate using minibatches.
 
@@ -48,8 +50,8 @@ def compute_error(model: framework.Module, data, batch_size: int):
     return sum(err) / len(err)
 
 
-def compute_loss(model: framework.Module, criterion: framework.Module, data: tuple,
-                 batch_size: int):
+def compute_loss(model: framework.Module, criterion: framework.MSELoss, data: tuple,
+                 batch_size: int) -> float:
     """
     Compute loss using minibatches.
 
@@ -65,8 +67,9 @@ def compute_loss(model: framework.Module, criterion: framework.Module, data: tup
     return sum(loss) / len(loss)
 
 
-def train_model(model, optimizer, criterion, train_data, test_data, n_epochs, batch_size,
-                track_history):
+def train_model(model: framework.Module, optimizer: framework.SGD, criterion: framework.MSELoss,
+                train_data: tuple, test_data: tuple, n_epochs: int, batch_size: int, 
+                track_history: bool) -> dict:
     """
     Train a model using minibatches.
 

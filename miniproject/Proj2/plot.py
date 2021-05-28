@@ -7,6 +7,8 @@ __author__ = "Austin Zadoks"
 import math
 import typing as ty
 
+import framework
+
 
 def plot_avg_histories(all_histories: ty.List[ty.Dict], filename: str='avg_history.png'):
     """
@@ -85,7 +87,8 @@ def plot_avg_histories(all_histories: ty.List[ty.Dict], filename: str='avg_histo
 
 
 
-def plot_points(train_data, test_data, model, filename='points.png'):
+def plot_points(train_data: tuple, test_data: tuple, model: framework.Module,
+                filename: str='points.png'):
     """
     Plot input data, colored by model output and classification.
 

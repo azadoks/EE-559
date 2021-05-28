@@ -5,6 +5,7 @@
 __author__ = "Austin Zadoks"
 
 import time
+import typing as ty
 
 from torch import manual_seed, set_grad_enabled
 
@@ -16,14 +17,14 @@ import log
 
 
 def train_selected_model(
-    activation,
-    learning_rate,
-    momentum,
-    n_points,
-    n_epochs,
-    batch_size,
-    track_history=False,
-    plot_points=False
+    activation: ty.Union[framework.Tanh, framework.ReLU],
+    learning_rate: float,
+    momentum: float,
+    n_points: int,
+    n_epochs: int,
+    batch_size: int,
+    track_history: bool=False,
+    plot_points: bool=False
 ):
     """
     Train a miniproject model with a given activation using SGD and MSE loss.
@@ -63,7 +64,7 @@ def train_selected_model(
     return history, result
 
 
-def main(n_rounds, base_seed, plot_history=False, plot_points=False):
+def main(n_rounds: int, base_seed: int, plot_history: bool=False, plot_points: bool=False):
     """
     Miniproject test solution.
 

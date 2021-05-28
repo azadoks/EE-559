@@ -5,12 +5,11 @@
 __author__ = "Austin Zadoks"
 
 import math
-import typing as ty
 
 from torch import empty  # pylint: disable=no-name-in-module
 
 
-def generate_data(n: int) -> ty.Tuple:
+def generate_data(n: int) -> tuple:
     """
     Generate 2D coordinates in the first unit quadrant and binary values for whether
     they lie in a circle of radius 1 / sqrt(2pi) centered at [0.5, 0.5].
