@@ -9,7 +9,8 @@ import time
 from torch import manual_seed, set_grad_enabled
 
 import data
-import framework
+import torch.nn as framework
+import torch.optim as optim
 import plot
 import train
 import log
@@ -22,18 +23,17 @@ def train_selected_model(
     n_points,
     n_epochs,
     batch_size,
-    track_history=False,
     plot_points=False
 ):
     train_data, test_data = data.generate_data(n_points)
 
     model = train.build_model(activation)
-    optimizer = framework.SGD(model, lr=learning_rate, momentum=momentum)
-    criterion = framework.MSELoss(model)
+    optimizer = optim.SGD(model.parameters(), lr=learning_rate, momentum=momentum)
+    criterion = framework.MSELoss()
 
     t0 = time.perf_counter()
     history = train.train_model(model, optimizer, criterion, train_data, test_data, n_epochs,
-                                batch_size, track_history)
+                                batch_size)
     t1 = time.perf_counter()
 
     result = {
@@ -60,7 +60,6 @@ def main(n_rounds, base_seed, plot_history=False, plot_points=False):
         'n_points': 1000,
         'n_epochs': 50,
         'batch_size': 64,
-        'track_history': plot_history,
         'plot_points': 'relu_points.pdf' if plot_points else False,
     }
     tanh_params = {
@@ -70,7 +69,6 @@ def main(n_rounds, base_seed, plot_history=False, plot_points=False):
         'n_points': 1000,
         'n_epochs': 50,
         'batch_size': 64,
-        'track_history': plot_history,
         'plot_points': 'tanh_points.pdf' if plot_points else False,
     }
 
@@ -82,8 +80,7 @@ def main(n_rounds, base_seed, plot_history=False, plot_points=False):
     log.print_round_header()
     for r in range(n_rounds):
         history, result = train_selected_model(**relu_params)
-        if plot_history:
-            histories['relu'].append(history)
+        histories['relu'].append(history)
         results['relu'].append(result)
         log.print_round_line(result, r, n_rounds)
     log.print_round_footer()
@@ -96,8 +93,7 @@ def main(n_rounds, base_seed, plot_history=False, plot_points=False):
     log.print_round_header()
     for r in range(n_rounds):
         history, result = train_selected_model(**tanh_params)
-        if plot_history:
-            histories['tanh'].append(history)
+        histories['tanh'].append(history)
         results['tanh'].append(result)
         log.print_round_line(result, r, n_rounds)
     log.print_round_footer()
@@ -107,10 +103,8 @@ def main(n_rounds, base_seed, plot_history=False, plot_points=False):
 
 
 if __name__ == '__main__':
-    set_grad_enabled(False)
-
     n_rounds = 32
     base_seed = 2021
 
     manual_seed(2021)
-    main(n_rounds, base_seed, plot_history=False, plot_points=False)
+    main(n_rounds, base_seed, plot_history=True, plot_points=True)

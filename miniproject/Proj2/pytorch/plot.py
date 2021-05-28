@@ -7,30 +7,6 @@ __author__ = "Austin Zadoks"
 import math
 import typing as ty
 
- 
-def plot_history(history, filename='history.png'):
-    try:
-        import matplotlib.pyplot as plt
-    except ImportError:
-        return
-
-    fig, ax = plt.subplots(dpi=300, figsize=(7,5))
-    
-    ax.semilogy(history['train_loss'] * 100, label='Train loss', c='tab:blue')
-    ax.semilogy(history['test_loss'] * 100, label='Test loss', c='tab:orange')
-    ax.set_xlabel('Epoch')
-    ax.set_ylabel('MSE Loss')
-    
-    twin_ax = ax.twinx()
-    twin_ax.plot(history['train_err'] * 100, label='Train error', c='tab:red')
-    twin_ax.plot(history['test_err'] * 100, label='Test error', c='tab:green')
-    twin_ax.set_ylabel('Error [%]')
-
-    fig.legend(loc='upper center', ncol=4)
-    fig.tight_layout()
-
-    fig.savefig(filename)
-
 
 def plot_avg_histories(all_histories: ty.List[ty.Dict], filename: str='avg_history.png'):
     """
@@ -67,40 +43,40 @@ def plot_avg_histories(all_histories: ty.List[ty.Dict], filename: str='avg_histo
     
     ax.semilogy(x, 
         history_statistics['train_loss'][0],
-        c='tab:blue',
+        c='black',
         label='Training loss')
     ax.fill_between(x,
         history_statistics['train_loss'][0] - history_statistics['train_loss'][1],
         history_statistics['train_loss'][0] + history_statistics['train_loss'][1],
-        alpha=0.2, color='tab:blue')
+        alpha=0.2, color='black')
     ax.semilogy(x, 
         history_statistics['test_loss'][0],
-        c='tab:green',
+        c='grey',
         label='Test loss')
     ax.fill_between(x,
         history_statistics['test_loss'][0] - history_statistics['test_loss'][1],
         history_statistics['test_loss'][0] + history_statistics['test_loss'][1],
-        alpha=0.2, color='tab:green')
+        alpha=0.2, color='grey')
     ax.set_xlabel('Epoch')
     ax.set_ylabel('MSE loss')
 
     twin_ax = ax.twinx()
     twin_ax.plot(x,
         1 - history_statistics['train_err'][0],
-        c='tab:orange',
+        c='tab:purple',
         label='Training acc.')
     twin_ax.fill_between(x,
         (1 - history_statistics['train_err'][0]) - history_statistics['train_err'][0],
         (1 - history_statistics['train_err'][0]) + history_statistics['train_err'][0],
-        alpha=0.2, color='tab:orange')
+        alpha=0.2, color='tab:purple')
     twin_ax.plot(x,
         1 - history_statistics['test_err'][0],
-        c='tab:red',
+        c='tab:pink',
         label='Test acc.')
     twin_ax.fill_between(x,
         (1 - history_statistics['test_err'][0]) - history_statistics['test_err'][0],
         (1 - history_statistics['test_err'][0]) + history_statistics['test_err'][0],
-        alpha=0.2, color='tab:red')
+        alpha=0.2, color='tab:pink')
     twin_ax.set_ylabel('Accuracy')
 
     fig.legend(loc='upper center', ncol=4)

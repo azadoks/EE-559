@@ -32,7 +32,20 @@ class Module(object):
 
 
 class Linear(Module):
-    
+    """
+    A linear layer.
+
+    Weights and biases are initialized using uniform sampling in the range
+        (-1/sqrt(in_features), 1/sqrt(in_features))
+    so that the variance in the weights and biases is proportional to
+        1 / n_features
+
+    w is a matrix with shape (out_features, in_features)
+    bias is a vector with length (out_features)
+
+    :param in_features: size of input vector
+    :param out_features: size of output vector
+    """
     def __init__(self, in_features, out_features):
         self.input = None
         self.in_features = in_features
@@ -48,13 +61,27 @@ class Linear(Module):
         self.dbias = empty(self.out_features).fill_(0)
 
     def forward(self, input):
+        """
+        Forward pass.
+
+        y = x @ w.T + b
+
+        :param input: input batch
+        :returns: y = x @ w.T + b
+        """
         self.input = input
         return self.bias.addmm(self.input, self.weight.t())  # x @ w.T + b
 
-    def backward(self, doutputs):
-        self.dbias.add_(doutputs.sum(0))  # dx / db = 
-        self.dweight.add_(doutputs.t().mm(self.input))
-        return doutputs.mm(self.weight)
+    def backward(self, doutput):
+        """
+        Backward pass.
+
+        :param doutput: gradient of the previous layer with respect to the output
+        :returns: doutput @ weight
+        """
+        self.dbias.add_(doutput.sum(0))  # dx / db = 
+        self.dweight.add_(doutput.t().mm(self.input))
+        return doutput.mm(self.weight)
 
     @property
     def param(self):
@@ -112,14 +139,14 @@ class ReLU(Module):
 class Tanh(Module):
     
     def __init__(self):
-        self.inputs = None
+        self.input = None
 
-    def forward(self, inputs):
-        self.inputs = inputs
-        return inputs.tanh()
+    def forward(self, input):
+        self.input = input
+        return input.tanh()
 
     def backward(self, doutput):
-        dtanh = self.inputs.cosh().pow(-2)
+        dtanh = self.input.cosh().pow(-2)
         return dtanh * doutput
 
 
