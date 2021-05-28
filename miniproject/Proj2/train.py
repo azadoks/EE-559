@@ -61,7 +61,7 @@ def train_model(model, optimizer, criterion, train_data, test_data, n_epochs, ba
             if track_history:
                 history['train_loss'][epoch] += loss
 
-            model.zero_grad()
+            optimizer.zero_grad()
             criterion.backward()
             optimizer.step()
         

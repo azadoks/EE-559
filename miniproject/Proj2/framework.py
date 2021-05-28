@@ -22,12 +22,15 @@ class Module(object):
     
     @property
     def param(self):
+        """Return (parameter, gradient) tuples."""
         return ()
     
     def zero_grad(self):
+        """Zero all stored gradients."""
         return
 
     def __call__(self, *input):
+        """Magic method so that `Module(input)` runs a forward pass."""
         return self.forward(*input)
 
 
@@ -70,7 +73,7 @@ class Linear(Module):
         :returns: y = x @ w.T + b
         """
         self.input = input
-        return self.bias.addmm(self.input, self.weight.t())  # x @ w.T + b
+        return self.bias.addmm(self.input, self.weight.t())
 
     def backward(self, doutput):
         """
@@ -79,7 +82,7 @@ class Linear(Module):
         :param doutput: gradient of the previous layer with respect to the output
         :returns: doutput @ weight
         """
-        self.dbias.add_(doutput.sum(0))  # dx / db = 
+        self.dbias.add_(doutput.sum(0))
         self.dweight.add_(doutput.t().mm(self.input))
         return doutput.mm(self.weight)
 
@@ -172,21 +175,23 @@ class SGD():
 
     def __init__(self, module, lr=1e-2, momentum=None):
         self.module = module
-        self.lr = lr
-        self.momentum = momentum
-        self.vt = []
-        if self.momentum is not None:
+        self.eta = lr
+        self.alpha = momentum
+        self.velocity = []
+        if self.alpha is not None:
             for param_set in self.module.param:
                 for _, dparam in param_set:
-                    self.vt.append(dparam)
+                    self.velocity.append(-self.eta * dparam)
 
     def step(self):
         for set_idx, param_set in enumerate(self.module.param):
             for param_idx, (param, dparam) in enumerate(param_set):
-                if self.momentum is not None:
+                if self.alpha is not None:
                     i = set_idx + param_idx
-                    self.vt[i] = self.vt[i] * self.momentum + dparam
-                    param.sub_(self.lr * self.vt[i])
+                    self.velocity[i] = self.alpha * self.velocity[i] - self.eta * dparam
+                    param.add_(self.velocity[i])
                 else:
-                    param.sub_(self.lr * dparam)
+                    param.sub_(self.eta * dparam)
 
+    def zero_grad(self):
+        self.module.zero_grad()
